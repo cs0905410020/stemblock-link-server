@@ -5,6 +5,12 @@
     "output": "hex"
   },
 
+  "sylvie": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:nano",
+    "output": "hex"
+  },
+
   "arduinoNano": {
     "type": "arduino",
     "fqbn": "arduino:avr:nano",
