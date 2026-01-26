@@ -1,0 +1,32 @@
+{
+  "arduino_uno": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:uno",
+    "output": "hex"
+  },
+  "arduino_nano_new": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:nano",
+    "output": "hex"
+  },
+  "arduino_nano_old": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:nano:cpu=atmega328old",
+    "output": "hex"
+  },
+  "arduino_mega": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:mega",
+    "output": "hex"
+  },
+  "esp32": {
+    "type": "arduino",
+    "fqbn": "esp32:esp32:esp32",
+    "output": "bin"
+  },
+  "nodemcu": {
+    "type": "arduino",
+    "fqbn": "esp8266:esp8266:nodemcuv2",
+    "output": "bin"
+  }
+}
