@@ -1,35 +1,37 @@
-const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
+
+const ARDUINO_CLI = path.join(
+    __dirname,
+    "../toolchains/arduino-cli/arduino-cli"
+);
+
+const ARDUINO_CONFIG = path.join(
+    __dirname,
+    "../toolchains/arduino-cli/arduino-cli.yaml"
+);
 
 function compileArduino({ code, fqbn, jobDir }) {
     return new Promise((resolve, reject) => {
         const sketchDir = path.join(jobDir, "sketch");
-        fs.mkdirSync(sketchDir, { recursive: true });
+        require("fs").mkdirSync(sketchDir, { recursive: true });
 
         const sketchFile = path.join(sketchDir, "sketch.ino");
-        fs.writeFileSync(sketchFile, code);
+        require("fs").writeFileSync(sketchFile, code);
 
         const cmd = `
-      arduino-cli compile \
-      --fqbn ${fqbn} \
-      --output-dir ${jobDir}/build \
+      ${ARDUINO_CLI} compile
+      --config-file ${ARDUINO_CONFIG}
+      --fqbn ${fqbn}
+      --output-dir ${jobDir}/build
       ${sketchDir}
     `;
 
-        exec(cmd, { timeout: 120000 }, (error, stdout, stderr) => {
-            if (error) {
-                return reject(stderr || error.message);
-            }
-
-            resolve({
-                message: "Compilation successful",
-                stdout
-            });
+        exec(cmd, { timeout: 120000 }, (err, stdout, stderr) => {
+            if (err) return reject(stderr || err.message);
+            resolve({ stdout });
         });
     });
 }
 
-module.exports = {
-    compileArduino
-};
+module.exports = { compileArduino };

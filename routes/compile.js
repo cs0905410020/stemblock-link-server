@@ -5,6 +5,11 @@ const { v4: uuidv4 } = require("uuid");
 
 const boards = require("../config/boards.json");
 const { compileArduino } = require("../compilers/arduino");
+const { compileESP } = require("../compilers/esp");
+const { compilePico } = require("../compilers/pico");
+const { compileMicrobit } = require("../compilers/microbit");
+const { compileMaix } = require("../compilers/maix");
+
 
 const router = express.Router();
 
@@ -35,17 +40,45 @@ router.post("/", async (req, res) => {
 
         switch (boardConfig.type) {
             case "arduino":
+            case "sylvie":
                 output = await compileArduino({
                     code,
                     fqbn: boardConfig.fqbn,
                     jobDir
                 });
                 break;
+            case "esp":
+                output = await compileESP({
+                    code,
+                    fqbn: boardConfig.fqbn,
+                    jobDir
+                });
+                break;
+            case "pico":
+                output = await compilePico({
+                    code,
+                    fqbn: boardConfig.fqbn,
+                    jobDir
+                });
+                break;
+            case "microbit":
+                output = await compileMicrobit({
+                    code,
+                    variant: boardConfig.variant,
+                    jobDir
+                });
+                break;
+
+            case "k210":
+                output = await compileMaix({
+                    code,
+                    variant: boardConfig.variant,
+                    jobDir
+                });
+                break;
 
             default:
-                return res.status(400).json({
-                    error: "Board type not implemented yet"
-                });
+                throw new Error("Unknown board type");
         }
 
         res.json({

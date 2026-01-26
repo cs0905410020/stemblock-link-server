@@ -5,6 +5,8 @@ const morgan = require("morgan");
 require("dotenv").config();
 
 const compileRoute = require("./routes/compile");
+const downloadRoute = require("./routes/download");
+const firmwareRoute = require("./routes/firmwares");
 
 const app = express();
 const PORT = process.env.PORT || 20111;
@@ -24,8 +26,21 @@ app.get("/health", (req, res) => {
     });
 });
 
+const rateLimit = require("express-rate-limit");
+
+const compileLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10, // 10 compiles per minute per IP
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+app.use("/compile", compileLimiter);
+
 // Compile API
 app.use("/compile", compileRoute);
+app.use("/download", downloadRoute);
+app.use("/firmwares", firmwareRoute);
 
 // Start server
 app.listen(PORT, () => {

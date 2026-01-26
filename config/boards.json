@@ -1,0 +1,104 @@
+{
+  "arduinoUno": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:uno",
+    "output": "hex"
+  },
+
+  "arduinoNano": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:nano",
+    "output": "hex"
+  },
+
+  "arduinoNanoV": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:nano:cpu=atmega328old",
+    "output": "hex"
+  },
+
+  "arduinoUnoUltra": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:uno",
+    "output": "hex",
+    "note": "Alias of Arduino Uno"
+  },
+
+  "arduinoUnoSE": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:uno",
+    "output": "hex",
+    "note": "Alias of Arduino Uno"
+  },
+
+  "arduinoLeonardo": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:leonardo",
+    "output": "hex"
+  },
+
+  "arduinoMega2560": {
+    "type": "arduino",
+    "fqbn": "arduino:avr:mega",
+    "output": "hex"
+  },
+
+  "arduinoEsp32": {
+    "type": "arduino",
+    "fqbn": "esp32:esp32:esp32",
+    "output": "bin"
+  },
+
+  "arduinoEsp8266": {
+    "type": "arduino",
+    "fqbn": "esp8266:esp8266:generic",
+    "output": "bin"
+  },
+
+  "arduinoEsp8266NodeMCU": {
+    "type": "arduino",
+    "fqbn": "esp8266:esp8266:nodemcuv2",
+    "output": "bin"
+  },
+
+  "arduinoRaspberryPiPico": {
+    "type": "arduino",
+    "fqbn": "rp2040:rp2040:rpipico",
+    "output": "uf2"
+  },
+
+  "microbit": {
+    "type": "microbit",
+    "variant": "v1",
+    "output": "hex"
+  },
+
+  "microbitV2": {
+    "type": "microbit",
+    "variant": "v2",
+    "output": "hex"
+  },
+
+  "arduinoK210": {
+    "type": "k210",
+    "variant": "generic",
+    "output": "bin"
+  },
+
+  "arduinoK210MaixDock": {
+    "type": "k210",
+    "variant": "maixdock",
+    "output": "bin"
+  },
+
+  "arduinoK210Maixduino": {
+    "type": "k210",
+    "variant": "maixduino",
+    "output": "bin"
+  },
+  "arduinoRaspberryPiPico": {
+    "type": "pico",
+    "fqbn": "rp2040:rp2040:rpipico",
+    "output": "uf2"
+  }
+}
