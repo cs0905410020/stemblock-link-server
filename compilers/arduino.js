@@ -1,36 +1,52 @@
+const fs = require("fs");
 const path = require("path");
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
 
-const ARDUINO_CLI = path.join(
-    __dirname,
-    "../toolchains/arduino-cli/arduino-cli"
-);
-
-const ARDUINO_CONFIG = path.join(
-    __dirname,
-    "../toolchains/arduino-cli/arduino-cli.yaml"
-);
+const ARDUINO_CLI = "/var/www/html/stemblock-link/toolchains/arduino-cli/arduino-cli";
+const ARDUINO_CONFIG = "/var/www/html/stemblock-link/toolchains/arduino-cli/arduino-cli.yaml";
 
 function compileArduino({ code, fqbn, jobDir }) {
     return new Promise((resolve, reject) => {
-        const sketchDir = path.join(jobDir, "sketch");
-        require("fs").mkdirSync(sketchDir, { recursive: true });
+        const sketchName = "sketch";
+        const sketchDir = path.join(jobDir, sketchName);
+        fs.mkdirSync(sketchDir, { recursive: true });
 
-        const sketchFile = path.join(sketchDir, "sketch.ino");
-        require("fs").writeFileSync(sketchFile, code);
+        const sketchFile = path.join(sketchDir, `${sketchName}.ino`);
+        fs.writeFileSync(sketchFile, code);
 
-        const cmd = `
-      ${ARDUINO_CLI} compile
-      --config-file ${ARDUINO_CONFIG}
-      --fqbn ${fqbn}
-      --output-dir ${jobDir}/build
-      ${sketchDir}
-    `;
+        const buildDir = path.join(jobDir, "build");
 
-        exec(cmd, { timeout: 120000 }, (err, stdout, stderr) => {
-            if (err) return reject(stderr || err.message);
-            resolve({ stdout });
-        });
+
+        const args = [
+            "compile",
+            "--config-file",
+            ARDUINO_CONFIG,
+            "--fqbn",
+            fqbn,
+            "--output-dir",
+            buildDir,
+            sketchDir
+        ];
+
+        execFile(
+            ARDUINO_CLI,
+            args,
+            {
+                timeout: 120000,
+                cwd: "/var/www/html/stemblock-link/toolchains/arduino-cli"
+            },
+            (error, stdout, stderr) => {
+                if (error) {
+                    return reject(stderr || error.message);
+                }
+
+                resolve({
+                    message: "Compilation successful",
+                    stdout
+                });
+            }
+        );
+
     });
 }
 
