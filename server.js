@@ -13,7 +13,21 @@ const PORT = process.env.PORT || 20111;
 
 // Security & middleware
 app.use(helmet());
-app.use(cors());
+
+app.use(cors({
+    origin: [
+        "https://stemblock.in",
+        "https://www.stemblock.in",
+        "https://stemblock.co.in",
+        "https://www.stemblock.co.in",
+        "http://127.0.0.1:8601",
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.options("*", cors()); // 👈 THIS LINE FIXES PREFLIGHT
+
 app.use(express.json({ limit: "5mb" }));
 app.use(morgan("combined"));
 
@@ -25,12 +39,12 @@ app.get("/health", (req, res) => {
         time: new Date().toISOString()
     });
 });
-
+app.set("trust proxy", 1);
 const rateLimit = require("express-rate-limit");
 
 const compileLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 10, // 10 compiles per minute per IP
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     standardHeaders: true,
     legacyHeaders: false
 });

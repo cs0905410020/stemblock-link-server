@@ -32,7 +32,8 @@ router.post("/", async (req, res) => {
 
     const jobId = uuidv4();
     const jobDir = path.join(__dirname, "../temp/jobs", jobId);
-
+    const buildDir = path.join(jobDir, "build");
+    let hexFilename, hexPath;
     try {
         fs.mkdirSync(jobDir, { recursive: true });
 
@@ -46,6 +47,14 @@ router.post("/", async (req, res) => {
                     fqbn: boardConfig.fqbn,
                     jobDir
                 });
+                if (fs.existsSync(buildDir)) {
+                    const files = fs.readdirSync(buildDir);
+                    const hexFile = files.find(f => f.endsWith('.hex'));
+                    if (hexFile) {
+                        hexFilename = hexFile;  // e.g. "sketch.ino.hex"
+                        hexPath = `/stemblock/download/${jobId}/${hexFile}`;
+                    }
+                }
                 break;
             case "esp":
                 output = await compileESP({
@@ -84,7 +93,9 @@ router.post("/", async (req, res) => {
         res.json({
             status: "success",
             jobId,
-            output
+            hexPath,           // 👈 NEW: /stemblock/download/{jobId}/sketch.ino.hex
+            hexFilename,       // 👈 NEW: exact filename
+            stdout: output.stdout || output.message
         });
 
     } catch (err) {
