@@ -20,6 +20,8 @@ app.use(cors({
         "https://www.stemblock.in",
         "https://stemblock.co.in",
         "https://www.stemblock.co.in",
+        "https://stemblock.app",
+        "https://www.stemblock.app",
         "http://127.0.0.1:8601",
     ],
     methods: ["GET", "POST", "OPTIONS"],

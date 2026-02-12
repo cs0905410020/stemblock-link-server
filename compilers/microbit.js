@@ -15,7 +15,7 @@ function compileMicrobit({ code, variant, jobDir }) {
         const platformioIni = `
 [env:microbit]
 platform = nordicnrf51
-board = ${variant === "v2" ? "microbit_v2" : "microbit"}
+board = ${variant === "v2" ? "bbcmicrobit_v2" : "bbcmicrobit"}
 framework = arduino
 build_flags =
   -DARDUINO_ARCH_NRF5

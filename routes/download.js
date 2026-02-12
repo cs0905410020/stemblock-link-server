@@ -9,6 +9,17 @@ const JOBS_DIR = path.join(__dirname, "../temp/jobs");
 // Allowed firmware extensions
 const ALLOWED_EXTENSIONS = [".hex", ".bin", ".uf2"];
 
+function deleteJob(jobId) {
+    const jobDir = path.join(JOBS_DIR, jobId);
+
+    setTimeout(() => {
+        fs.rm(jobDir, { recursive: true, force: true }, err => {
+            if (err) console.error("Cleanup failed:", err);
+            else console.log("Deleted job:", jobId);
+        });
+    }, 15000); // 15 seconds safety delay
+}
+
 // 👈 ADD THIS FIRST (handles /download/{jobId}/{filename})
 router.get("/:jobId/:filename", (req, res) => {
     const { jobId, filename } = req.params;
@@ -24,17 +35,17 @@ router.get("/:jobId/:filename", (req, res) => {
     }
 
     const filePath = path.join(JOBS_DIR, jobId, 'build',filename);
-console.log(filePath);
+
     if (!fs.existsSync(filePath)) {
         return res.status(404).json({ error: "File not found" });
     }
 
-    res.download(filePath, filename, err => {
-        if (err) {
-            console.error("Download error:", err);
-            if (!res.headersSent) res.status(500).json({ error: "Download failed" });
-        }
+    res.download(filePath, filename);
+
+    res.on("finish", () => {
+        deleteJob(jobId);
     });
+
 });
 /**
  * GET /download/:jobId
@@ -84,13 +95,11 @@ router.get("/:jobId", (req, res) => {
         });
     }
 
-    res.download(firmwareFile, path.basename(firmwareFile), err => {
-        if (err) {
-            console.error("Download error:", err);
-            if (!res.headersSent) {
-                res.status(500).json({ error: "Download failed" });
-            }
-        }
+    res.download(firmwareFile, path.basename(firmwareFile));
+
+    res.on("finish", () => {
+        deleteJob(jobId);
     });
+
 });
 module.exports = router;
