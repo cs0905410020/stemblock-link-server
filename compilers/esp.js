@@ -2,15 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 
-const ARDUINO_CLI = path.join(
-    __dirname,
-    "../toolchains/arduino-cli/arduino-cli"
-);
+const ARDUINO_CLI = "/var/www/html/stemblock-link/toolchains/arduino-cli/arduino-cli";
+const ARDUINO_CONFIG = "/var/www/html/stemblock-link/toolchains/arduino-cli/arduino-cli.yaml";
 
-const ARDUINO_CONFIG = path.join(
-    __dirname,
-    "../toolchains/arduino-cli/arduino-cli.yaml"
-);
 
 /**
  * Compile ESP32 / ESP8266 / NodeMCU using Arduino CLI
@@ -25,13 +19,7 @@ function compileESP({ code, fqbn, jobDir }) {
 
         const buildDir = path.join(jobDir, "build");
 
-        const cmd = `
-      ${ARDUINO_CLI} compile
-      --config-file ${ARDUINO_CONFIG}
-      --fqbn ${fqbn}
-      --output-dir ${buildDir}
-      ${sketchDir}
-    `;
+        const cmd = `${ARDUINO_CLI} compile --config-file ${ARDUINO_CONFIG} --fqbn ${fqbn} --build-path ${buildDir} --export-binaries --warnings none ${sketchDir}`;
 
         exec(
             cmd,
@@ -40,23 +28,38 @@ function compileESP({ code, fqbn, jobDir }) {
                 maxBuffer: 1024 * 1024 * 10
             },
             (err, stdout, stderr) => {
+                console.log(err);
                 if (err) {
                     return reject(stderr || err.message);
                 }
+console.log(buildDir,'build');
+                // expected firmware locations (ESP32 core 3.x)
+                const mergedPath = path.join(buildDir, "sketch.ino.merged.bin");
+                const firmwarePath = path.join(buildDir, "sketch.ino.bin");
 
-                // Find .bin firmware
-                const files = fs.readdirSync(buildDir);
-                const binFile = files.find(f => f.endsWith(".bin"));
+                let flashImage = null;
 
-                if (!binFile) {
-                    return reject("ESP firmware (.bin) not generated");
+                if (fs.existsSync(mergedPath)) {
+                    flashImage = mergedPath;
+                } else if (fs.existsSync(firmwarePath)) {
+                    flashImage = firmwarePath;
+                }
+
+                if (!flashImage) {
+                    console.log("Build directory contents:", fs.readdirSync(buildDir));
+                    return reject("ESP32 firmware not generated");
                 }
 
                 resolve({
                     message: "ESP compilation successful",
-                    firmware: path.join(buildDir, binFile),
+                    files: {
+                        flash: flashImage
+                    },
                     stdout
                 });
+
+
+
             }
         );
     });

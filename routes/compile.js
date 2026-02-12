@@ -38,7 +38,7 @@ router.post("/", async (req, res) => {
         fs.mkdirSync(jobDir, { recursive: true });
 
         let output;
-
+console.log(boardConfig.type,'type');
         switch (boardConfig.type) {
             case "arduino":
             case "sylvie":
@@ -62,7 +62,19 @@ router.post("/", async (req, res) => {
                     fqbn: boardConfig.fqbn,
                     jobDir
                 });
-                break;
+console.log(output,'output');
+                const flashFile = path.basename(output.files.flash);
+console.log(flashFile,'flashFile');
+                return res.json({
+                    status: "success",
+                    jobId,
+                    type: "esp",
+                    files: {
+                        flash: `/stemblock/download/${jobId}/${flashFile}`
+                    },
+                    stdout: output.stdout || output.message
+                });
+
             case "pico":
                 output = await compilePico({
                     code,
@@ -93,10 +105,12 @@ router.post("/", async (req, res) => {
         res.json({
             status: "success",
             jobId,
-            hexPath,           // 👈 NEW: /stemblock/download/{jobId}/sketch.ino.hex
-            hexFilename,       // 👈 NEW: exact filename
+            type: "avr",
+            hexPath,
+            hexFilename,
             stdout: output.stdout || output.message
         });
+
 
     } catch (err) {
         console.error("Compile error:", err);

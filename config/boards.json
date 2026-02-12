@@ -50,27 +50,21 @@
   },
 
   "arduinoEsp32": {
-    "type": "arduino",
+    "type": "esp",
     "fqbn": "esp32:esp32:esp32",
     "output": "bin"
   },
 
   "arduinoEsp8266": {
-    "type": "arduino",
+    "type": "esp",
     "fqbn": "esp8266:esp8266:generic",
     "output": "bin"
   },
 
   "arduinoEsp8266NodeMCU": {
-    "type": "arduino",
+    "type": "esp",
     "fqbn": "esp8266:esp8266:nodemcuv2",
     "output": "bin"
-  },
-
-  "arduinoRaspberryPiPico": {
-    "type": "arduino",
-    "fqbn": "rp2040:rp2040:rpipico",
-    "output": "uf2"
   },
 
   "microbit": {
