@@ -32,33 +32,28 @@ function compileESP({ code, fqbn, jobDir }) {
                 if (err) {
                     return reject(stderr || err.message);
                 }
-console.log(buildDir,'build');
-                // expected firmware locations (ESP32 core 3.x)
-                const mergedPath = path.join(buildDir, "sketch.ino.merged.bin");
-                const firmwarePath = path.join(buildDir, "sketch.ino.bin");
+                const files = fs.readdirSync(buildDir);
 
-                let flashImage = null;
+                const app        = files.find(f => f.endsWith(".ino.bin"));
+                const bootloader = files.find(f => f.includes("bootloader.bin"));
+                const partitions = files.find(f => f.includes("partitions.bin"));
 
-                if (fs.existsSync(mergedPath)) {
-                    flashImage = mergedPath;
-                } else if (fs.existsSync(firmwarePath)) {
-                    flashImage = firmwarePath;
-                }
+                const flashArgsPath = path.join(buildDir, "flash_args");
 
-                if (!flashImage) {
-                    console.log("Build directory contents:", fs.readdirSync(buildDir));
-                    return reject("ESP32 firmware not generated");
+                if (!app || !bootloader || !partitions || !fs.existsSync(flashArgsPath)) {
+                    return reject("ESP32 flash files missing");
                 }
 
                 resolve({
                     message: "ESP compilation successful",
                     files: {
-                        flash: flashImage
+                        app: path.join(buildDir, app),
+                        bootloader: path.join(buildDir, bootloader),
+                        partitions: path.join(buildDir, partitions),
+                        flashArgs: flashArgsPath
                     },
                     stdout
                 });
-
-
 
             }
         );

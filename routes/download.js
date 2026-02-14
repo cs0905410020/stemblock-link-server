@@ -24,29 +24,27 @@ function deleteJob(jobId) {
 router.get("/:jobId/:filename", (req, res) => {
     const { jobId, filename } = req.params;
 
-    // Sanitize
+    // basic sanitize
     if (!/^[a-zA-Z0-9-_]+$/.test(jobId) || !/^[a-zA-Z0-9._-]+$/.test(filename)) {
         return res.status(400).json({ error: "Invalid jobId or filename" });
     }
 
-    const ext = path.extname(filename).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
-        return res.status(400).json({ error: "Invalid file extension" });
-    }
-
-    const filePath = path.join(JOBS_DIR, jobId, 'build',filename);
+    const filePath = path.join(JOBS_DIR, jobId, "build", filename);
 
     if (!fs.existsSync(filePath)) {
         return res.status(404).json({ error: "File not found" });
     }
 
-    res.download(filePath, filename);
+    // IMPORTANT: do NOT restrict extensions anymore
+    // IMPORTANT: do NOT use res.download
 
-    res.on("finish", () => {
-        deleteJob(jobId);
+    res.sendFile(filePath, err => {
+        if (!err) {
+            deleteJob(jobId);
+        }
     });
-
 });
+
 /**
  * GET /download/:jobId
  */

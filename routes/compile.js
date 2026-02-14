@@ -62,18 +62,26 @@ console.log(boardConfig.type,'type');
                     fqbn: boardConfig.fqbn,
                     jobDir
                 });
-console.log(output,'output');
-                const flashFile = path.basename(output.files.flash);
-console.log(flashFile,'flashFile');
+
+                const appFile        = path.basename(output.files.app);
+                const bootloaderFile = path.basename(output.files.bootloader);
+                const partitionsFile = path.basename(output.files.partitions);
+                const flash_argsFile    = path.basename(output.files.flashArgs);
+
                 return res.json({
                     status: "success",
                     jobId,
                     type: "esp",
                     files: {
-                        flash: `/stemblock/download/${jobId}/${flashFile}`
+                        app: `/stemblock/download/${jobId}/${appFile}`,
+                        bootloader: `/stemblock/download/${jobId}/${bootloaderFile}`,
+                        partitions: `/stemblock/download/${jobId}/${partitionsFile}`,
+                        flashArgs: `/stemblock/download/${jobId}/${flash_argsFile}`
                     },
                     stdout: output.stdout || output.message
                 });
+
+
 
             case "pico":
                 output = await compilePico({
