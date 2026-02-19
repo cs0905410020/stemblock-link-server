@@ -9,6 +9,7 @@ const { compileESP } = require("../compilers/esp");
 const { compilePico } = require("../compilers/pico");
 const { compileMicrobit } = require("../compilers/microbit");
 const { compileMaix } = require("../compilers/maix");
+const { compileNetHub } = require("../compilers/nethub");
 
 
 const router = express.Router();
@@ -82,6 +83,26 @@ console.log(boardConfig.type,'type');
                 });
 
 
+            case "esp_mpy":
+            case "nethub":
+                output = await compileNetHub({
+                    code,
+                    jobDir
+                });
+
+                const pyFile  = path.basename(output.files.py);
+                const mpyFile = path.basename(output.files.mpy);
+
+                return res.json({
+                    status: "success",
+                    jobId,
+                    type: "nethub",
+                    files: {
+                        py: `/stemblock/download/${jobId}/${pyFile}`,
+                        mpy: `/stemblock/download/${jobId}/${mpyFile}`
+                    },
+                    stdout: output.stdout || output.message
+                });
 
             case "pico":
                 output = await compilePico({

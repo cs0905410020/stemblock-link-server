@@ -55,6 +55,12 @@
     "output": "bin"
   },
 
+  "nethub": {
+    "type": "esp_mpy",
+    "chip": "esp32",
+    "output": "mpy"
+  },
+
   "arduinoEsp8266": {
     "type": "esp",
     "fqbn": "esp8266:esp8266:generic",
