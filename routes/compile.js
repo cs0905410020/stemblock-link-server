@@ -31,7 +31,7 @@ router.post("/", async (req, res) => {
         });
     }
 
-    const jobId = uuidv4();
+    const jobId = boardConfig.type+uuidv4();
     const jobDir = path.join(__dirname, "../temp/jobs", jobId);
     const buildDir = path.join(jobDir, "build");
     let hexFilename, hexPath;
@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
         fs.mkdirSync(jobDir, { recursive: true });
 
         let output;
-console.log(boardConfig.type,'type');
+
         switch (boardConfig.type) {
             case "arduino":
             case "sylvie":
@@ -89,7 +89,7 @@ console.log(boardConfig.type,'type');
                     code,
                     jobDir
                 });
-
+                console.log(output,'output');
                 const pyFile  = path.basename(output.files.py);
                 const mpyFile = path.basename(output.files.mpy);
 

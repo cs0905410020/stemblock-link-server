@@ -7,7 +7,7 @@ require("dotenv").config();
 const compileRoute = require("./routes/compile");
 const downloadRoute = require("./routes/download");
 const firmwareRoute = require("./routes/firmwares");
-
+const RuntimeLibsRoute = require("./routes/RuntimeLibsRoute");
 const app = express();
 const PORT = process.env.PORT || 20111;
 
@@ -57,6 +57,7 @@ app.use("/compile", compileLimiter);
 app.use("/compile", compileRoute);
 app.use("/download", downloadRoute);
 app.use("/firmwares", firmwareRoute);
+app.use("/runtime-libs", RuntimeLibsRoute);
 
 // Start server
 app.listen(PORT, () => {
