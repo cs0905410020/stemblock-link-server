@@ -23,7 +23,7 @@ function deleteJob(jobId) {
 // 👈 ADD THIS FIRST (handles /download/{jobId}/{filename})
 router.get("/:jobId/:filename", (req, res) => {
     const { jobId, filename } = req.params;
-console.log(filename,jobId,'filename,jobId');
+
     // basic sanitize
     if (!/^[a-zA-Z0-9-_]+$/.test(jobId) || !/^[a-zA-Z0-9._-]+$/.test(filename)) {
         return res.status(400).json({ error: "Invalid jobId or filename" });
@@ -31,7 +31,7 @@ console.log(filename,jobId,'filename,jobId');
     const ext = path.extname(filename).toLowerCase();
     const targetFolder = (ext === ".py" || ext === ".mpy") ? "fs" : "build";
     const filePath = path.join(JOBS_DIR, jobId, targetFolder, filename);
-console.log(filePath,targetFolder,ext);
+
     if (!fs.existsSync(filePath)) {
         return res.status(404).json({ error: "File not found" });
     }
@@ -45,7 +45,35 @@ console.log(filePath,targetFolder,ext);
         }
     });
 });
+// Permanent Desktop App Download API
+// GET /download/desktop
+router.get("/desktop", (req, res) => {
+    const DESKTOP_DIR = path.join(__dirname, "../downloads/desktop");
 
+    if (!fs.existsSync(DESKTOP_DIR)) {
+        return res.status(404).json({ error: "Desktop builds folder not found" });
+    }
+
+    const files = fs.readdirSync(DESKTOP_DIR)
+        .filter(file => file.endsWith(".exe"));
+
+    if (files.length === 0) {
+        return res.status(404).json({ error: "No desktop build found" });
+    }
+
+    // Sort by latest modified time
+    const latestFile = files
+        .map(file => ({
+            name: file,
+            time: fs.statSync(path.join(DESKTOP_DIR, file)).mtime.getTime()
+        }))
+        .sort((a, b) => b.time - a.time)[0].name;
+
+    const filePath = path.join(DESKTOP_DIR, latestFile);
+
+    // Always download with fixed name
+    res.download(filePath, latestFile?.name);
+});
 /**
  * GET /download/:jobId
  */
