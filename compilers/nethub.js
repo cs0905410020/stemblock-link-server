@@ -7,7 +7,7 @@ const RUNTIME_LIBS = "/var/www/html/stemblock-link/runtime-libs";
 
 function injectRuntimeLibraries(srcDir, callback) {
 
-    const libs = ["BlynkLib.py", "lcd_api.py", "i2c_lcd.py"];
+    const libs = ["BlynkLib.py", "lcd_api.py", "i2c_lcd.py", "neopixel.py", "servo.py", "ultrasonic.py"];
 
     try {
 
