@@ -2,9 +2,14 @@
 const fs = require("fs");
 const path = require("path");
 const router = require("express").Router();
+const {
+    RUNTIME_LIBS_DIR,
+    listRuntimeLibFiles,
+    validateRuntimeLib
+} = require("../lib/runtimeLibs");
 
 // where your libraries actually exist
-const BASE = path.join(__dirname, "../runtime-libs");
+const BASE = RUNTIME_LIBS_DIR;
 
 /**
  * GET /runtime-libs
@@ -12,8 +17,15 @@ const BASE = path.join(__dirname, "../runtime-libs");
  */
 router.get("/", (req, res) => {
     try {
-        const files = fs.readdirSync(BASE)
-            .filter(f => f.endsWith(".py"));   // IMPORTANT: only .py
+        const files = listRuntimeLibFiles().filter(file => {
+            try {
+                validateRuntimeLib(file);
+                return true;
+            } catch (error) {
+                console.error(`Skipping incompatible runtime library ${file}:`, error.message);
+                return false;
+            }
+        });
 
         res.json({
             files
@@ -36,15 +48,19 @@ router.get("/:filename", (req, res) => {
         return res.status(400).send("Invalid filename");
     }
 
-    const filePath = path.join(BASE, filename);
+    let filePath;
 
-    // SECURITY: prevent path traversal
-    if (!filePath.startsWith(BASE)) {
-        return res.status(403).send("Access denied");
+    try {
+        filePath = validateRuntimeLib(filename);
+    } catch (error) {
+        return res.status(500).send(error.message);
     }
 
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).send("Library not found");
+    const relativePath = path.relative(BASE, filePath);
+
+    // SECURITY: prevent path traversal
+    if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+        return res.status(403).send("Access denied");
     }
 
     // VERY IMPORTANT for WebSerial + fetch()

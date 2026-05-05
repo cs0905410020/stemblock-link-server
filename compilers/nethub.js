@@ -1,26 +1,25 @@
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
+const {
+    NETHUB_RUNTIME_LIBS,
+    validateRuntimeLib
+} = require("../lib/runtimeLibs");
 
-const MPY_CROSS = "/var/www/html/stemblock-link/toolchains/micropython/mpy-cross/build/mpy-cross";
-const RUNTIME_LIBS = "/var/www/html/stemblock-link/runtime-libs";
+const MPY_CROSS = process.env.MPY_CROSS
+    ? path.resolve(process.env.MPY_CROSS)
+    : path.resolve(__dirname, "../toolchains/micropython/mpy-cross/build/mpy-cross");
 
 function injectRuntimeLibraries(srcDir, callback) {
 
-    const libs = ["BlynkLib.py", "lcd_api.py", "i2c_lcd.py", "neopixel.py", "servo.py", "ultrasonic.py"];
+    const libs = NETHUB_RUNTIME_LIBS;
 
     try {
 
         // Copy first
         libs.forEach(lib => {
-            const src = path.join(RUNTIME_LIBS, lib);
-            console.log(src,'src');
+            const src = validateRuntimeLib(lib);
             const dest = path.join(srcDir, lib);
-            console.log(dest,'dest');
-            if (!fs.existsSync(src)) {
-                throw new Error(`Missing runtime library: ${lib}`);
-            }
-            console.log(lib,'src');
             fs.copyFileSync(src, dest);
         });
 
