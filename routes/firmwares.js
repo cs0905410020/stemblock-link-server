@@ -2,6 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const router = require("express").Router();
+const { getNethubFirmwareManifest } = require("../lib/nethubSupport");
 
 const BASE = path.join(__dirname, "../firmwares");
 
@@ -18,6 +19,21 @@ router.get("/", (req, res) => {
 
     res.json(result);
 });
+
+router.get("/nethub/manifest", (req, res) => {
+    const chip = req.query.chip || "esp32";
+    const dir = path.join(BASE, "microPython");
+
+    if (!fs.existsSync(dir)) {
+        return res.status(404).json({ error: "Nethub MicroPython firmware folder not found" });
+    }
+
+    const files = fs.readdirSync(dir)
+        .filter(file => file.endsWith(".bin"));
+
+    res.json(getNethubFirmwareManifest(files, chip));
+});
+
 router.get("/:category/:filename", (req, res) => {
     const { category, filename } = req.params;
 

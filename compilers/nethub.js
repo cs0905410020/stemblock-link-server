@@ -5,6 +5,7 @@ const {
     NETHUB_RUNTIME_LIBS,
     validateRuntimeLib
 } = require("../lib/runtimeLibs");
+const { getNethubUploadMetadata } = require("../lib/nethubSupport");
 
 const MPY_CROSS = process.env.MPY_CROSS
     ? path.resolve(process.env.MPY_CROSS)
@@ -55,13 +56,15 @@ function injectRuntimeLibraries(srcDir, callback) {
 function compileNetHub({ code, jobDir }) {
 
     return new Promise((resolve, reject) => {
+        if (!fs.existsSync(MPY_CROSS)) {
+            return reject(`mpy-cross not found at ${MPY_CROSS}`);
+        }
 
         const srcDir = path.join(jobDir, "fs");
         fs.mkdirSync(srcDir, { recursive: true });
 
         // main.py (user program)
         const pyFile = path.join(srcDir, "main.py");
-        console.log(pyFile,'pyFile');
         fs.writeFileSync(pyFile, code);
 
         // 2. inject + compile libraries FIRST
@@ -93,6 +96,7 @@ function compileNetHub({ code, jobDir }) {
                         py: pyFile,
                         mpy: mpyFile
                     },
+                    upload: getNethubUploadMetadata(),
                     stdout
                 });
             });

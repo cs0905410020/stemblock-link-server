@@ -10,6 +10,7 @@ const { compilePico } = require("../compilers/pico");
 const { compileMicrobit } = require("../compilers/microbit");
 const { compileMaix } = require("../compilers/maix");
 const { compileNetHub } = require("../compilers/nethub");
+const { getNethubUploadMetadata } = require("../lib/nethubSupport");
 
 
 const router = express.Router();
@@ -89,18 +90,19 @@ router.post("/", async (req, res) => {
                     code,
                     jobDir
                 });
-                console.log(output,'output');
                 const pyFile  = path.basename(output.files.py);
                 const mpyFile = path.basename(output.files.mpy);
 
                 return res.json({
                     status: "success",
                     jobId,
+                    board: "nethub",
                     type: "nethub",
                     files: {
                         py: `/stemblock/download/${jobId}/${pyFile}`,
                         mpy: `/stemblock/download/${jobId}/${mpyFile}`
                     },
+                    upload: output.upload || getNethubUploadMetadata(),
                     stdout: output.stdout || output.message
                 });
 
