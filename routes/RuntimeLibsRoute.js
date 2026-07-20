@@ -36,15 +36,10 @@ router.get("/", (req, res) => {
 });
 
 
-/**
- * GET /runtime-libs/:filename
- * Download a specific library file
- */
-router.get("/:filename", (req, res) => {
-    const { filename } = req.params;
+function sendRuntimeLib(req, res, filename) {
 
     // allow only safe filenames
-    if (!/^[a-zA-Z0-9._-]+$/.test(filename)) {
+    if (!/^[a-zA-Z0-9._/-]+$/.test(filename)) {
         return res.status(400).send("Invalid filename");
     }
 
@@ -54,6 +49,10 @@ router.get("/:filename", (req, res) => {
         filePath = validateRuntimeLib(filename);
     } catch (error) {
         return res.status(500).send(error.message);
+    }
+
+    if (!fs.statSync(filePath).isFile()) {
+        return res.status(400).send("Invalid filename");
     }
 
     const relativePath = path.relative(BASE, filePath);
@@ -70,6 +69,22 @@ router.get("/:filename", (req, res) => {
 
     const stream = fs.createReadStream(filePath);
     stream.pipe(res);
+}
+
+/**
+ * GET /runtime-libs/:filename
+ * Download a specific flat library file
+ */
+router.get("/:filename", (req, res) => {
+    sendRuntimeLib(req, res, req.params.filename);
+});
+
+/**
+ * GET /runtime-libs/*
+ * Download a nested library package file
+ */
+router.get("/*", (req, res) => {
+    sendRuntimeLib(req, res, req.params[0]);
 });
 
 module.exports = router;

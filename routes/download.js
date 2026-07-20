@@ -8,6 +8,8 @@ const JOBS_DIR = path.join(__dirname, "../temp/jobs");
 const DESKTOP_DIR = path.join(__dirname, "../downloads/desktop");
 
 const ALLOWED_EXTENSIONS = [".hex", ".bin", ".uf2"];
+const ALLOWED_FS_EXTENSIONS = [".py", ".mpy"];
+const JOB_CLEANUP_DELAY_MS = 10 * 60 * 1000;
 
 function deleteJob(jobId) {
     const jobDir = path.join(JOBS_DIR, jobId);
@@ -17,7 +19,7 @@ function deleteJob(jobId) {
             if (err) console.error("Cleanup failed:", err);
             else console.log("Deleted job:", jobId);
         });
-    }, 15000);
+    }, JOB_CLEANUP_DELAY_MS);
 }
 
 /* ---------- DESKTOP ROUTES FIRST ---------- */
@@ -94,25 +96,40 @@ router.get("/desktop", (req, res) => {
 
 /* ---------- JOB ROUTES AFTER ---------- */
 
-// GET /download/:jobId/:filename
-router.get("/:jobId/:filename", (req, res) => {
-    const { jobId, filename } = req.params;
-
-    if (!/^[a-zA-Z0-9-_]+$/.test(jobId) || !/^[a-zA-Z0-9._-]+$/.test(filename)) {
+function sendJobFile(req, res, jobId, filename) {
+    if (!/^[a-zA-Z0-9-_]+$/.test(jobId) || !/^[a-zA-Z0-9._/-]+$/.test(filename)) {
         return res.status(400).json({ error: "Invalid jobId or filename" });
     }
 
     const ext = path.extname(filename).toLowerCase();
-    const targetFolder = (ext === ".py" || ext === ".mpy") ? "fs" : "build";
-    const filePath = path.join(JOBS_DIR, jobId, targetFolder, filename);
+    const targetFolder = ALLOWED_FS_EXTENSIONS.includes(ext) ? "fs" : "build";
+    const baseDir = path.join(JOBS_DIR, jobId, targetFolder);
+    const filePath = path.join(baseDir, filename);
+    const relativePath = path.relative(baseDir, filePath);
 
-    if (!fs.existsSync(filePath)) {
+    if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+        return res.status(403).json({ error: "Access denied" });
+    }
+
+    if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
         return res.status(404).json({ error: "File not found" });
     }
 
     res.sendFile(filePath, err => {
         if (!err) deleteJob(jobId);
     });
+}
+
+// GET /download/:jobId/:filename
+router.get("/:jobId/:filename", (req, res) => {
+    const { jobId, filename } = req.params;
+
+    sendJobFile(req, res, jobId, filename);
+});
+
+// GET /download/:jobId/*
+router.get("/:jobId/*", (req, res) => {
+    sendJobFile(req, res, req.params.jobId, req.params[0]);
 });
 
 // GET /download/:jobId

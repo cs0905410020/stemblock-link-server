@@ -15,6 +15,23 @@ const { getNethubUploadMetadata } = require("../lib/nethubSupport");
 
 const router = express.Router();
 
+function findFirstFileByExtension(dir, extension) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+
+        if (entry.isDirectory()) {
+            const nestedFile = findFirstFileByExtension(fullPath, extension);
+            if (nestedFile) return nestedFile;
+        } else if (path.extname(entry.name).toLowerCase() === extension) {
+            return fullPath;
+        }
+    }
+
+    return null;
+}
+
 router.post("/", async (req, res) => {
     const { board, code } = req.body;
 
@@ -50,12 +67,15 @@ router.post("/", async (req, res) => {
                     jobDir
                 });
                 if (fs.existsSync(buildDir)) {
-                    const files = fs.readdirSync(buildDir);
-                    const hexFile = files.find(f => f.endsWith('.hex'));
+                    const hexFile = findFirstFileByExtension(buildDir, ".hex");
                     if (hexFile) {
-                        hexFilename = hexFile;  // e.g. "sketch.ino.hex"
-                        hexPath = `/stemblock/download/${jobId}/${hexFile}`;
+                        const relativeHexFile = path.relative(buildDir, hexFile).replace(/\\/g, "/");
+                        hexFilename = path.basename(hexFile);
+                        hexPath = `/stemblock/download/${jobId}/${relativeHexFile}`;
                     }
+                }
+                if (!hexPath) {
+                    throw new Error(`Arduino compile completed but no .hex output was produced for ${board}. Verify the board core and required Arduino libraries, including Servo.h for Sylvie servo sketches.`);
                 }
                 break;
             case "esp":
@@ -92,6 +112,15 @@ router.post("/", async (req, res) => {
                 });
                 const pyFile  = path.basename(output.files.py);
                 const mpyFile = path.basename(output.files.mpy);
+                const runtimeFiles = (output.files.runtime || []).map(file => {
+                    const relativeFile = path.relative(path.join(jobDir, "fs"), file).replace(/\\/g, "/");
+
+                    return {
+                        path: relativeFile,
+                        target: `/${relativeFile}`,
+                        url: `/stemblock/download/${jobId}/${relativeFile}`
+                    };
+                });
 
                 return res.json({
                     status: "success",
@@ -100,8 +129,10 @@ router.post("/", async (req, res) => {
                     type: "nethub",
                     files: {
                         py: `/stemblock/download/${jobId}/${pyFile}`,
-                        mpy: `/stemblock/download/${jobId}/${mpyFile}`
+                        mpy: `/stemblock/download/${jobId}/${mpyFile}`,
+                        runtime: runtimeFiles
                     },
+                    runtimeFiles,
                     upload: output.upload || getNethubUploadMetadata(),
                     stdout: output.stdout || output.message
                 });
